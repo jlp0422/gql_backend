@@ -4,7 +4,12 @@
     "react"
   ],
   "rules": {
-    "max-len": [1, 120, 2, {"ignoreComments": true}]
+    "no-console": "off",
+    "comma-dangle": "off"
   },
-  "extends": ["airbnb-base"]
+  "extends": ["airbnb-base"],
+  "env": {
+    "browser": true,
+    "node": true
+  }
 }

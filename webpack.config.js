@@ -1,36 +1,42 @@
 const path = require('path');
 const webpack = require('webpack');
 
+const outputDirectory = 'dist';
+
 module.exports = {
-  entry: './src/index.js',
+  devtool: 'cheap-eval-source-map',
+  entry: ['@babel/polyfill', './src/client/index.js'],
   output: {
-    path: path.join(__dirname, 'dist'),
+    path: path.join(__dirname, outputDirectory),
     publicPath: '/',
-    filename: 'bundle.js'
+    filename: 'bundle.js',
   },
   module: {
     rules: [
       {
         test: /\.(js|jsx)$/,
         exclude: /node_modules/,
-        use: ['babel-loader']
+        use: ['babel-loader'],
       },
       {
         test: /\.js$/,
         exclude: /node_modules/,
-        use: ['babel-loader', 'eslint-loader']
-      }
-    ]
+        use: ['babel-loader', 'eslint-loader'],
+      },
+    ],
   },
   resolve: {
-    extensions: ['*', '.js', '.jsx']
+    extensions: ['*', '.js', '.jsx'],
   },
   plugins: [
-    new webpack.HotModuleReplacementPlugin()
+    new webpack.HotModuleReplacementPlugin(),
   ],
   devServer: {
     port: 9000,
-    contentBase: './dist',
-    hot: true
-  }
-}
+    contentBase: outputDirectory,
+    proxy: {
+      '/graphql': 'http://localhost:3000'
+    },
+    hot: true,
+  },
+};
