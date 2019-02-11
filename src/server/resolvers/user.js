@@ -1,13 +1,13 @@
 module.exports = {
   Query: {
-    users: (parent, args, { models }) => Object.values(models.users),
-    user: (parent, { id }, { models }) => models.users[id],
-    me: (parent, args, { me }) => me
+    users: async (parent, args, { models: { User } }) => await User.findAll(),
+    user: async (parent, { id }, { models: { User } }) => await User.findById(id),
+    me: async (parent, args, { me, models: { User } }) => await User.findById(me.id)
   },
 
   User: {
-    messages: (user, args, { models }) => Object.values(models.messages).filter(
-      message => message.userId === user.id
-    )
+    messages: async (user, args, { models: { Message } }) => await Message.findAll({
+      where: { userId: user.id }
+    })
   }
 };
