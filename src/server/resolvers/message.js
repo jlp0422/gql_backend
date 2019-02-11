@@ -15,7 +15,7 @@ module.exports = {
         userId: me.id
       };
 
-      Object.assign({}, models.messages[id], message);
+      models.messages[id] = message;
       models.users[me.id].messageIds.push(id);
       return message;
     },
@@ -24,7 +24,7 @@ module.exports = {
       if (!message) {
         return false;
       }
-      Object.assign({}, models.messages, otherMessages);
+      models.messages = otherMessages;
       return true;
     }
   },
