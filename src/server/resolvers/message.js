@@ -1,0 +1,35 @@
+const uuidv4 = require('uuid/v4');
+
+module.exports = {
+  Query: {
+    messages: (parent, args, { models }) => Object.values(models.messages),
+    message: (parent, { id }, { models }) => models.messages[id]
+  },
+
+  Mutation: {
+    createMessage: (parent, { text }, { me, models }) => {
+      const id = uuidv4();
+      const message = {
+        id,
+        text,
+        userId: me.id
+      };
+
+      Object.assign({}, models.messages[id], message);
+      models.users[me.id].messageIds.push(id);
+      return message;
+    },
+    deleteMessage: (parent, { id }, { models }) => {
+      const { [id]: message, ...otherMessages } = models.messages;
+      if (!message) {
+        return false;
+      }
+      Object.assign({}, models.messages, otherMessages);
+      return true;
+    }
+  },
+
+  Message: {
+    user: (message, args, { models }) => models.users[message.userId]
+  }
+};
