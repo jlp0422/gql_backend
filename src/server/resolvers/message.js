@@ -1,4 +1,4 @@
-const messageResolver = {
+module.exports = {
 	Query: {
 		messages: async (parent, args, { models: { Message } }) =>
 			await Message.findAll(),
@@ -7,13 +7,23 @@ const messageResolver = {
 	},
 
 	Mutation: {
-		createMessage: async (parent, { text }, { me, models: { Message } }) =>
-			await Message.create({
-				text,
-				userId: me.id
-			}),
-		deleteMessage: async (parent, { id }, { models: { Message } }) =>
-			await Message.destroy({ where: { id } })
+		createMessage: async (parent, { text }, { me, models: { Message } }) => {
+			try {
+				return await Message.create({
+					text,
+					userId: me.id
+				})
+			} catch (error) {
+				throw new Error(error)
+			}
+		},
+		deleteMessage: async (parent, { id }, { models: { Message } }) => {
+			try {
+				return await Message.destroy({ where: { id } })
+			} catch (error) {
+				throw new Error(error)
+			}
+		}
 	},
 
 	Message: {
@@ -21,5 +31,3 @@ const messageResolver = {
 			await User.findById(message.userId)
 	}
 }
-
-module.exports = messageResolver
