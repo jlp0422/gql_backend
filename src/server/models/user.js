@@ -38,6 +38,9 @@ const user = (sequelize, DataTypes) => {
 				},
 				len: [7, 42]
 			}
+		},
+		role: {
+			type: DataTypes.STRING
 		}
 	})
 
@@ -68,6 +71,7 @@ const user = (sequelize, DataTypes) => {
 		return await bcrypt.hash(this.password, saltRounds)
 	}
 
+	// do not make into fat arrow
 	User.prototype.validatePassword = async function(password) {
 		return await bcrypt.compare(password, this.password)
 	}

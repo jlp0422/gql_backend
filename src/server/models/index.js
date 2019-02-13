@@ -29,6 +29,7 @@ const createUsersWithMessages = async () => {
 			username: 'jeremyphilipson',
 			email: 'jeremyphilipson@gmail.com',
 			password: 'jeremyp',
+			role: 'ADMIN',
 			messages: [
 				{
 					text: 'Finished Java courses'
