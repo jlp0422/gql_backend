@@ -51,7 +51,7 @@ server.applyMiddleware({ app, path: '/graphql' })
 
 sequelize.sync({ force: eraseDatabaseOnSync }).then(async () => {
 	if (eraseDatabaseOnSync) {
-		createUsersWithMessages()
+		createUsersWithMessages(new Date())
 	}
 
 	app.listen(PORT, () => {

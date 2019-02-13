@@ -23,7 +23,7 @@ Object.keys(models).forEach(key => {
 
 const eraseDatabaseOnSync = true
 
-const createUsersWithMessages = async () => {
+const createUsersWithMessages = async date => {
 	await models.User.create(
 		{
 			username: 'jeremyphilipson',
@@ -32,7 +32,8 @@ const createUsersWithMessages = async () => {
 			role: 'ADMIN',
 			messages: [
 				{
-					text: 'Finished Java courses'
+					text: 'Finished Java courses',
+					createdAt: date.setSeconds(date.getSeconds() + 1)
 				}
 			]
 		},
@@ -46,10 +47,12 @@ const createUsersWithMessages = async () => {
 			password: 'carolyn',
 			messages: [
 				{
-					text: 'Went to ballet'
+					text: 'Went to ballet',
+					createdAt: date.setSeconds(date.getSeconds() + 1)
 				},
 				{
-					text: 'Is tired bea'
+					text: 'Is tired bea',
+					createdAt: date.setSeconds(date.getSeconds() + 1)
 				}
 			]
 		},
