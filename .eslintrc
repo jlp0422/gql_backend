@@ -28,6 +28,7 @@
     "no-unreachable": 2,
     "no-unexpected-multiline": 0,
     "no-sequences": 2,
+    "no-return-await": 0,
     // Best practices
     "consistent-return": 0,
     "curly": [2, "all"],

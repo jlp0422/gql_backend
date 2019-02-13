@@ -14,7 +14,7 @@ const {
 
 const app = express()
 app.use(cors())
-const { PORT } = process.env
+const { PORT, SECRET } = process.env
 
 const server = new ApolloServer({
 	typeDefs: schema,
@@ -28,13 +28,14 @@ const server = new ApolloServer({
 	},
 	context: async () => ({
 		models,
-		me: await models.User.findByLogin('jeremyphilipson')
+		me: await models.User.findByLogin('jeremyphilipson'),
+		secret: SECRET
 	})
 })
 
 server.applyMiddleware({ app, path: '/graphql' })
 
-sequelize.sync({ force: eraseDatabaseOnSync }).then(async () => {
+sequelize.sync({ force: true }).then(async () => {
 	if (eraseDatabaseOnSync) {
 		createUsersWithMessages()
 	}

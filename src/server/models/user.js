@@ -1,3 +1,5 @@
+const bcrypt = require('bcrypt')
+
 const user = (sequelize, DataTypes) => {
 	const User = sequelize.define('user', {
 		username: {
@@ -7,8 +9,34 @@ const user = (sequelize, DataTypes) => {
 			validate: {
 				notEmpty: {
 					args: true,
-					msg: 'A username is required'
+					msg: 'Username cannot be blank'
 				}
+			}
+		},
+		email: {
+			type: DataTypes.STRING,
+			unique: true,
+			allowNull: false,
+			validate: {
+				notEmpty: {
+					args: true,
+					msg: 'Email cannot be blank'
+				},
+				isEmail: {
+					args: true,
+					msg: 'A valid email address is required'
+				}
+			}
+		},
+		password: {
+			type: DataTypes.STRING,
+			allowNull: false,
+			validate: {
+				notEmpty: {
+					args: true,
+					msg: 'Password cannot be blank'
+				},
+				len: [7, 42]
 			}
 		}
 	})
@@ -27,8 +55,17 @@ const user = (sequelize, DataTypes) => {
 				where: { email: login }
 			})
 		}
-
 		return loggedInUser
+	}
+
+	User.beforeCreate(async user => {
+		user.password = await user.generatePasswordHash()
+	})
+
+	// do not make into fat arrow
+	User.prototype.generatePasswordHash = async function() {
+		const saltRounds = 10
+		return await bcrypt.hash(this.password, saltRounds)
 	}
 
 	return User
