@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken')
+const { AuthenticationError, UserInputError } = require('apollo-server')
 const EXPIRES_IN = '30m'
 
 const createToken = async (user, secret, expiresIn) => {
@@ -27,6 +28,22 @@ module.exports = {
 				password
 			})
 
+			return { token: createToken(user, secret, EXPIRES_IN) }
+		},
+
+		signIn: async (
+			parent,
+			{ login, password },
+			{ secret, models: { User } }
+		) => {
+			const user = await User.findByLogin(login)
+			if (!user) {
+				throw new UserInputError('No user found with this login')
+			}
+			const isValid = await user.validatePassword(password)
+			if (!isValid) {
+				throw new AuthenticationError('Invalid password')
+			}
 			return { token: createToken(user, secret, EXPIRES_IN) }
 		}
 	},
