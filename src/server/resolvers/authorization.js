@@ -15,7 +15,7 @@ const isAdmin = combineResolvers(
 )
 
 const isMessageOwner = async (parent, { id }, { me, models: { Message } }) => {
-	const message = await Message.findById(id, { raw: true })
+	const message = await Message.findByPk(id, { raw: true })
 
 	if (message.userId !== me.id) {
 		throw new ForbiddenError('Not authenticated as message owner.')

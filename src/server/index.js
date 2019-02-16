@@ -1,8 +1,9 @@
 require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
-const { ApolloServer, AuthenticationError } = require('apollo-server-express')
 const jwt = require('jsonwebtoken')
+const http = require('http')
+const { ApolloServer, AuthenticationError } = require('apollo-server-express')
 const schema = require('./schema')
 const resolvers = require('./resolvers')
 const {
@@ -40,21 +41,34 @@ const server = new ApolloServer({
 
 		return { ...error, message }
 	},
-	context: async ({ req }) => ({
-		models,
-		me: await getMe(req),
-		secret: SECRET
-	})
+	context: async ({ req, connection }) => {
+		if (connection) {
+			return {
+				models
+			}
+		}
+
+		if (req) {
+			return {
+				models,
+				me: await getMe(req),
+				secret: SECRET
+			}
+		}
+	}
 })
 
 server.applyMiddleware({ app, path: '/graphql' })
+
+const httpServer = http.createServer(app)
+server.installSubscriptionHandlers(httpServer)
 
 sequelize.sync({ force: eraseDatabaseOnSync }).then(async () => {
 	if (eraseDatabaseOnSync) {
 		createUsersWithMessages(new Date())
 	}
 
-	app.listen(PORT, () => {
+	httpServer.listen(PORT, () => {
 		console.log(`apollo server listening on ${PORT}`)
 	})
 })
