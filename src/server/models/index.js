@@ -1,9 +1,16 @@
 const Sequelize = require('sequelize')
 
+const {
+	TEST_DATABASE,
+	DATABASE,
+	DATABASE_USER,
+	DATABASE_PASSWORD
+} = process.env
+
 const sequelize = new Sequelize(
-	process.env.DATABASE,
-	process.env.DATABASE_USER,
-	process.env.DATABASE_PASSWORD,
+	TEST_DATABASE || DATABASE,
+	DATABASE_USER,
+	DATABASE_PASSWORD,
 	{
 		dialect: 'postgres',
 		logging: false
@@ -21,13 +28,11 @@ Object.keys(models).forEach(key => {
 	}
 })
 
-const eraseDatabaseOnSync = true
-
 const createUsersWithMessages = async date => {
 	await models.User.create(
 		{
 			username: 'jeremyphilipson',
-			email: 'jeremyphilipson@gmail.com',
+			email: 'jeremy@jeremy.com',
 			password: 'jeremyp',
 			role: 'ADMIN',
 			messages: [
@@ -43,7 +48,7 @@ const createUsersWithMessages = async date => {
 	await models.User.create(
 		{
 			username: 'carolynfine',
-			email: 'carolynjfine@gmail.com',
+			email: 'carolyn@carolyn.com',
 			password: 'carolyn',
 			messages: [
 				{
@@ -63,6 +68,5 @@ const createUsersWithMessages = async date => {
 module.exports = {
 	sequelize,
 	models,
-	createUsersWithMessages,
-	eraseDatabaseOnSync
+	createUsersWithMessages
 }

@@ -6,13 +6,8 @@ const http = require('http')
 const { ApolloServer, AuthenticationError } = require('apollo-server-express')
 const schema = require('./schema')
 const resolvers = require('./resolvers')
-const {
-	models,
-	sequelize,
-	createUsersWithMessages,
-	eraseDatabaseOnSync
-} = require('./models')
-const { PORT, SECRET } = process.env
+const { models, sequelize, createUsersWithMessages } = require('./models')
+const { PORT, SECRET, TEST_DATABASE } = process.env
 
 const app = express()
 app.use(cors())
@@ -63,8 +58,10 @@ server.applyMiddleware({ app, path: '/graphql' })
 const httpServer = http.createServer(app)
 server.installSubscriptionHandlers(httpServer)
 
-sequelize.sync({ force: eraseDatabaseOnSync }).then(async () => {
-	if (eraseDatabaseOnSync) {
+const isTest = Boolean(TEST_DATABASE)
+
+sequelize.sync({ force: isTest }).then(async () => {
+	if (isTest) {
 		createUsersWithMessages(new Date())
 	}
 
