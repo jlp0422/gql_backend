@@ -1,66 +1,161 @@
+require('dotenv').config()
 const { expect } = require('chai')
+const URL = 'http://localhost:3000'
+const request = require('supertest')(URL)
+// const jwt = require('jsonwebtoken')
+// const { SECRET } = process.env
+// const {
+// 	models: { User, Message }
+// } = require('../models/index')
 
-const { userApi } = require('./api')
-
-const getUserSignInToken = user => {
-	return user.data.data.signIn.token
-}
+let adminToken, userToken
 
 describe('#Users', () => {
 	describe('user(id: String!): User', () => {
-		it('returns a user when user can be found', async () => {
-			const expectedResult = {
-				data: {
-					user: {
-						id: '1',
-						username: 'jeremyphilipson',
-						email: 'jeremy@jeremy.com',
-						role: 'ADMIN'
+		it('returns a user when user can be found', done => {
+			request
+				.post('/graphql')
+				.send({ query: '{ user(id: 1) { id username email } }' })
+				.expect(200)
+				.end((err, res) => {
+					if (err) {
+						return done(err)
 					}
-				}
-			}
-			const result = await userApi.user({ id: '1' })
-			expect(result.data).to.eql(expectedResult)
+					expect(res.body.data.user.id).to.equal('1')
+					done()
+				})
 		})
 
-		it('returns null when no user can be found', async () => {
-			const expectedResult = {
-				data: {
-					user: null
-				}
-			}
-			const result = await userApi.user({ id: '44' })
-			expect(result.data).to.eql(expectedResult)
+		it('returns null when no user can be found', done => {
+			request
+				.post('/graphql')
+				.send({ query: '{ user(id: 44) {id username email } }' })
+				.expect(200)
+				.end((err, res) => {
+					if (err) {
+						return done(err)
+					}
+					expect(res.body.data.user).to.equal(null)
+					done()
+				})
+		})
+	})
+
+	describe('users: Users!', () => {
+		it('returns all users in the database', done => {
+			request
+				.post('/graphql')
+				.send({ query: '{ users { id username email } }' })
+				.expect(200)
+				.end((err, res) => {
+					if (err) {
+						return done(err)
+					}
+					expect(res.body.data.users.length).to.equal(2)
+					done()
+				})
 		})
 	})
 
 	describe('deleteUser(id: String!): Boolean!', () => {
-		it('returns an error because only admins can delete users', async () => {
-			const nonAdminUser = await userApi.signIn({
-				login: 'carolynfine',
-				password: 'carolyn'
-			})
-			const {
-				data: { errors }
-			} = await userApi.deleteUser(
-				{ id: '1' },
-				getUserSignInToken(nonAdminUser)
-			)
+		beforeEach(done => {
+			request
+				.post('/graphql')
+				.send({
+					query: `mutation {
+            signIn(login: "carolynfine" password: "carolyn")
+            { token }
+          }`
+				})
+				.expect(200)
+				.end((err, res) => {
+					if (err) {
+						return done(err)
+					}
+					userToken = res.body.data.signIn.token
+				})
 
-			expect(errors[0].message).to.eql('Not authorized as admin.')
+			request
+				.post('/graphql')
+				.send({
+					query: `mutation {
+            signIn(login: "jeremyphilipson" password: "jeremyp")
+            { token }
+          }`
+				})
+				.expect(200)
+				.end((err, res) => {
+					if (err) {
+						return done(err)
+					}
+					adminToken = res.body.data.signIn.token
+					done()
+				})
 		})
-		it('returns true when an admin deletes a user', async () => {
-			const adminUser = await userApi.signIn({
-				login: 'jeremyphilipson',
-				password: 'jeremyp'
-			})
-			const {
-				data: {
-					data: { deleteUser }
-				}
-			} = await userApi.deleteUser({ id: '2' }, getUserSignInToken(adminUser))
+		it('returns an error if user is not logged in', done => {
+			request
+				.post('/graphql')
+				.send({
+					query: `
+          mutation {
+            deleteUser(id: "2")
+          }
+        `
+				})
+				.expect(200)
+				.end((err, res) => {
+					if (err) {
+						return done(err)
+					}
+					expect(res.body.errors[0].message).to.equal(
+						'Not authenticated as user.'
+					)
+					done()
+				})
+		})
 
-			expect(deleteUser).to.eql(true)
+		it('returns an error if user is not authorized to delete users', done => {
+			request
+				.post('/graphql')
+				.set('x-token', userToken)
+				.send({
+					query: `
+          mutation {
+            deleteUser(id: "1")
+          }
+        `
+				})
+				.expect(200)
+				.end((err, res) => {
+					if (err) {
+						return done(err)
+					}
+					expect(res.body.errors[0].message).to.equal(
+						'Not authorized as admin.'
+					)
+					done()
+				})
+		})
+
+		it('returns true when an admin deletes a user', done => {
+			request
+				.post('/graphql')
+				.set('x-token', adminToken)
+				.send({
+					query: `
+          mutation {
+            deleteUser(id: "2")
+          }
+        `
+				})
+				.expect(200)
+				.end((err, res) => {
+					if (err) {
+						return done(err)
+					}
+					expect(res.body).to.equal(true)
+					done()
+				})
 		})
 	})
 })

@@ -17,6 +17,30 @@ const user = async variables =>
 		variables
 	})
 
+const users = async () =>
+	await axios.post(API_URL, {
+		query: `
+      query {
+        users {
+          id
+        }
+      }
+    `
+	})
+
+const me = async () =>
+	await axios.post(API_URL, {
+		query: `
+    query {
+      me {
+        id,
+        username,
+        email
+      }
+    }
+  `
+	})
+
 const signIn = async variables =>
 	await axios.post(API_URL, {
 		query: `
@@ -50,6 +74,8 @@ const deleteUser = async (variables, token) =>
 module.exports = {
 	userApi: {
 		user,
+		users,
+		me,
 		signIn,
 		deleteUser
 	}
