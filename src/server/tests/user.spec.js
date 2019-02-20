@@ -2,13 +2,15 @@ require('dotenv').config()
 const { expect } = require('chai')
 const URL = 'http://localhost:3000'
 const request = require('supertest')(URL)
-// const jwt = require('jsonwebtoken')
-// const { SECRET } = process.env
+const jwt = require('jsonwebtoken')
+const { SECRET } = process.env
 // const {
 // 	models: { User, Message }
 // } = require('../models/index')
 
-let adminToken, userToken
+let adminToken
+let userToken
+let otherToken
 
 describe('#Users', () => {
 	describe('user(id: String!): User', () => {
@@ -52,6 +54,107 @@ describe('#Users', () => {
 						return done(err)
 					}
 					expect(res.body.data.users.length).to.equal(2)
+					done()
+				})
+		})
+	})
+
+	describe('signIn(login: String!, password: String!)', () => {
+		it('will throw an error if no login is found', done => {
+			request
+				.post('/graphql')
+				.send({
+					query: `mutation {
+          signIn(login: "testing" password: "jeremyp")
+          { token }
+        }`
+				})
+				.expect(200)
+				.end((err, res) => {
+					if (err) {
+						return done(err)
+					}
+					expect(res.body.errors[0].message).to.equal(
+						'No user found with this login.'
+					)
+					done()
+				})
+		})
+
+		it('will throw a password error with an invalid password', done => {
+			request
+				.post('/graphql')
+				.send({
+					query: `mutation {
+            signIn(login: "carolynfine" password: "invalid")
+            { token }
+          }`
+				})
+				.expect(200)
+				.end((err, res) => {
+					if (err) {
+						return done(err)
+					}
+					expect(res.body.errors[0].message).to.equal('Invalid password.')
+					done()
+				})
+		})
+
+		it('will successfully login with email address and return a valid token', done => {
+			request
+				.post('/graphql')
+				.send({
+					query: `mutation {
+            signIn(login: "jeremy@jeremy.com" password: "jeremyp")
+            { token }
+          }`
+				})
+				.expect(200)
+				.end((err, res) => {
+					if (err) {
+						return done(err)
+					}
+					const user = jwt.verify(res.body.data.signIn.token, SECRET)
+					expect(res.body.data.signIn.token).to.not.be.null
+					expect(user.id).to.be.ok
+					done()
+				})
+		})
+
+		it('will successfully login with username and return a valid token', done => {
+			request
+				.post('/graphql')
+				.send({
+					query: `mutation {
+            signIn(login: "carolynfine" password: "carolyn")
+            { token }
+          }`
+				})
+				.expect(200)
+				.end((err, res) => {
+					if (err) {
+						return done(err)
+					}
+					const user = jwt.verify(res.body.data.signIn.token, SECRET)
+					expect(res.body.data.signIn.token).to.not.be.null
+					expect(user.id).to.be.ok
+					otherToken = res.body.data.signIn.token
+					done()
+				})
+		})
+
+		it('will return the logged in user when passed a valid token', done => {
+			request
+				.post('/graphql')
+				.send({ query: `{ me { id username email } }` })
+				.set('x-token', otherToken)
+				.expect(200)
+				.end((err, res) => {
+					if (err) {
+						return done(err)
+					}
+					const user = jwt.verify(otherToken, SECRET)
+					expect(Number(res.body.data.me.id)).to.equal(user.id)
 					done()
 				})
 		})
@@ -153,7 +256,7 @@ describe('#Users', () => {
 					if (err) {
 						return done(err)
 					}
-					expect(res.body).to.equal(true)
+					expect(res.body.data.deleteUser).to.equal(true)
 					done()
 				})
 		})

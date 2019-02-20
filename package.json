@@ -7,7 +7,7 @@
 		"client": "webpack-dev-server --config ./webpack.config.js --mode development",
 		"server": "nodemon src/server",
 		"dev": "concurrently \"npm run server\" \"npm run client\"",
-		"test": "mocha --require @babel/register 'src/server/**/*.spec.js'",
+		"test": "mocha --timeout 5000 --require @babel/register 'src/server/**/*.spec.js'",
 		"test-server": "TEST_DATABASE=mytestdatabase npm run server"
 	},
 	"keywords": [],
