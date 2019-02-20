@@ -4,10 +4,12 @@ const cors = require('cors')
 const jwt = require('jsonwebtoken')
 const http = require('http')
 const { ApolloServer, AuthenticationError } = require('apollo-server-express')
+const DataLoader = require('dataloader')
 const schema = require('./schema')
 const resolvers = require('./resolvers')
 const { models, sequelize, createUsersWithMessages } = require('./models')
-const { PORT, SECRET, TEST_DATABASE } = process.env
+const { batchUsers } = require('./loaders')
+const { SECRET, TEST_DATABASE } = process.env
 
 const app = express()
 app.use(cors())
@@ -39,7 +41,10 @@ const server = new ApolloServer({
 	context: async ({ req, connection }) => {
 		if (connection) {
 			return {
-				models
+				models,
+				loaders: {
+					user: new DataLoader(keys => batchUsers(keys, models))
+				}
 			}
 		}
 
@@ -47,7 +52,10 @@ const server = new ApolloServer({
 			return {
 				models,
 				me: await getMe(req),
-				secret: SECRET
+				secret: SECRET,
+				loaders: {
+					user: new DataLoader(keys => batchUsers(keys, models))
+				}
 			}
 		}
 	}
@@ -59,13 +67,15 @@ const httpServer = http.createServer(app)
 server.installSubscriptionHandlers(httpServer)
 
 const isTest = Boolean(TEST_DATABASE)
+const isProd = Boolean(process.env.DATABASE_URL)
+const port = process.env.PORT || 3000
 
-sequelize.sync({ force: isTest }).then(async () => {
-	if (isTest) {
+sequelize.sync({ force: isTest || isProd }).then(async () => {
+	if (isTest || isProd) {
 		createUsersWithMessages(new Date())
 	}
 
-	httpServer.listen(PORT, () => {
-		console.log(`apollo server listening on ${PORT}`)
+	httpServer.listen(port, () => {
+		console.log(`apollo server listening on ${port}`)
 	})
 })

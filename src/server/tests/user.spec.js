@@ -4,9 +4,6 @@ const URL = 'http://localhost:3000'
 const request = require('supertest')(URL)
 const jwt = require('jsonwebtoken')
 const { SECRET } = process.env
-// const {
-// 	models: { User, Message }
-// } = require('../models/index')
 
 let adminToken
 let userToken

@@ -1,21 +1,28 @@
 const Sequelize = require('sequelize')
-
 const {
 	TEST_DATABASE,
 	DATABASE,
 	DATABASE_USER,
-	DATABASE_PASSWORD
+	DATABASE_PASSWORD,
+	DATABASE_URL
 } = process.env
 
-const sequelize = new Sequelize(
-	TEST_DATABASE || DATABASE,
-	DATABASE_USER,
-	DATABASE_PASSWORD,
-	{
-		dialect: 'postgres',
-		logging: false
-	}
-)
+let sequelize
+if (process.env.DATABASE_URL) {
+	sequelize = new Sequelize(DATABASE_URL, {
+		dialect: 'postgres'
+	})
+} else {
+	sequelize = new Sequelize(
+		TEST_DATABASE || DATABASE,
+		DATABASE_USER,
+		DATABASE_PASSWORD,
+		{
+			dialect: 'postgres',
+			logging: false
+		}
+	)
+}
 
 const models = {
 	User: sequelize.import('./user'),

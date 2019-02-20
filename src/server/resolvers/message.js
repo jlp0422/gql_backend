@@ -36,8 +36,8 @@ module.exports = {
 	},
 
 	Message: {
-		user: async (message, args, { models: { User } }) =>
-			await User.findByPk(message.userId)
+		user: async (message, args, { loaders }) =>
+			await loaders.user.load(message.userId)
 	},
 
 	Subscription: {
