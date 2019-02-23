@@ -1,10 +1,38 @@
 /* eslint-disable */
-import React from 'react';
-import ReactDOM from 'react-dom';
+import React from 'react'
+import ReactDOM from 'react-dom'
+import { ApolloProvider } from 'react-apollo'
+import { ApolloClient } from 'apollo-client'
+import { HttpLink } from 'apollo-link-http'
+import { InMemoryCache } from 'apollo-cache-inmemory'
+import './style.css'
+import App from './App'
 
-const title = 'My super React Webpack Babel Setup';
-const app = document.getElementById('app');
+const GITHUB_BASE_URL = 'https://api.github.com/graphql'
 
-ReactDOM.render(<div>{title}</div>, app);
+console.log(process.env.GITHUB_PERSONAL_ACCESS_TOKEN)
 
-module.hot.accept();
+const cache = new InMemoryCache()
+
+const httpLink = new HttpLink({
+	uri: GITHUB_BASE_URL,
+	headers: {
+		authorization: `Bearer ${process.env.GITHUB_PERSONAL_ACCESS_TOKEN}`
+	}
+})
+
+const client = new ApolloClient({
+	link: httpLink,
+	cache
+})
+
+const root = document.getElementById('app')
+
+ReactDOM.render(
+	<ApolloProvider client={client}>
+		<App />
+	</ApolloProvider>,
+	root
+)
+
+module.hot.accept()

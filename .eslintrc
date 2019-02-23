@@ -35,7 +35,7 @@
     "strict": 0,
     "no-var": 2,
     "no-shadow": 0,
-    "no-unused-vars": [2, {"vars": "all", "args": "after-used", "ignoreRestSiblings": true}],
+    "no-unused-vars": [1, {"vars": "all", "args": "after-used", "ignoreRestSiblings": true}],
     "no-undef": 2,
     "no-use-before-define": 0,
     "prefer-const": 2,
@@ -47,8 +47,12 @@
     "no-extra-semi": 0,
     "no-mixed-spaces-and-tabs": 0,
     "no-this-before-super": 2,
-    "object-shorthand": 2
+    "object-shorthand": 2,
+    "react/jsx-uses-react": 1
   },
+  "plugins": [
+    "react"
+  ],
   "env": {
     "node": true,
     "browser": true,
