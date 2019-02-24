@@ -1,12 +1,12 @@
 import React from 'react'
-import '../style.css'
-
 import RepositoryItem from '../RepositoryItem'
 
+import '../style.css'
+
 const RepositoryList = ({ repositories }) => {
-	return repositories.map(({ repo }) => (
-		<div key={repo.id} className="RepositoryItem">
-			<RepositoryItem {...repo} />
+	return repositories.edges.map(({ node }) => (
+		<div key={node.id} className="RepositoryItem">
+			<RepositoryItem {...node} />
 		</div>
 	))
 }
