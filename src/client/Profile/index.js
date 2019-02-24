@@ -6,17 +6,26 @@ import ErrorMessage from '../Error'
 import { GET_REPOSITORIES_OF_CURRENT_USER } from './queries'
 
 const Profile = () => (
-	<Query query={GET_REPOSITORIES_OF_CURRENT_USER}>
-		{({ data, loading, error }) => {
+	<Query
+		query={GET_REPOSITORIES_OF_CURRENT_USER}
+		notifyOnNetworkStatusChange={true}
+	>
+		{({ data, loading, error, fetchMore }) => {
 			if (error) {
 				return <ErrorMessage error={error} />
 			}
 			const { viewer } = data
-			if (loading || !viewer) {
+			if (loading && !viewer) {
 				return <Loading />
 			}
 
-			return <RepositoryList repositories={viewer.repositories} />
+			return (
+				<RepositoryList
+					loading={loading}
+					repositories={viewer.repositories}
+					fetchMore={fetchMore}
+				/>
+			)
 		}}
 	</Query>
 )
