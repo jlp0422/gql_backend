@@ -26,7 +26,7 @@ const errorLink = onError(({ graphQLErrors, networkError }) => {
 			},
 			attempts: {
 				max: 5,
-				retryIf: (error, _operation) => Boolean(error)
+				retryIf: (error /*_operation*/) => Boolean(error)
 			}
 		})
 	}

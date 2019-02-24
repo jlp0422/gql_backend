@@ -7,6 +7,7 @@ import {
 	UNSTAR_REPOSITORY,
 	WATCH_REPOSITORY
 } from '../mutations'
+import REPOSITORY_FRAGMENT from '../fragments'
 
 import '../style.css'
 
@@ -17,6 +18,97 @@ const VIEWER_SUBSCRIPTIONS = {
 
 const isWatching = viewerSubscription =>
 	viewerSubscription === VIEWER_SUBSCRIPTIONS.SUBSCRIBED
+
+const updateAddStar = (
+	client,
+	{
+		data: {
+			addStar: {
+				starrable: { id }
+			}
+		}
+	}
+) => {
+	const repository = client.readFragment({
+		id: `Repository:${id}`,
+		fragment: REPOSITORY_FRAGMENT
+	})
+
+	const totalCount = repository.stargazers.totalCount + 1
+
+	client.writeFragment({
+		id: `Repository:${id}`,
+		fragment: REPOSITORY_FRAGMENT,
+		data: {
+			...repository,
+			stargazers: {
+				...repository.stargazers,
+				totalCount
+			}
+		}
+	})
+}
+
+const updateRemoveStar = (
+	client,
+	{
+		data: {
+			removeStar: {
+				starrable: { id }
+			}
+		}
+	}
+) => {
+	const repository = client.readFragment({
+		id: `Repository:${id}`,
+		fragment: REPOSITORY_FRAGMENT
+	})
+	const totalCount = repository.stargazers.totalCount - 1
+	client.writeFragment({
+		id: `Repository:${id}`,
+		fragment: REPOSITORY_FRAGMENT,
+		data: {
+			...repository,
+			stargazers: {
+				...repository.stargazers,
+				totalCount
+			}
+		}
+	})
+}
+
+const updateWatching = (
+	client,
+	{
+		data: {
+			updateSubscription: {
+				subscribable: { id, viewerSubscription }
+			}
+		}
+	}
+) => {
+	const repository = client.readFragment({
+		id: `Repository:${id}`,
+		fragment: REPOSITORY_FRAGMENT
+	})
+	let { totalCount } = repository.watchers
+	totalCount =
+		viewerSubscription === VIEWER_SUBSCRIPTIONS.SUBSCRIBED
+			? totalCount++
+			: totalCount--
+
+	client.writeFragment({
+		id: `Repository:${id}`,
+		fragment: REPOSITORY_FRAGMENT,
+		data: {
+			...repository,
+			watchers: {
+				...repository.watchers,
+				totalCount
+			}
+		}
+	})
+}
 
 const RepositoryItem = ({
 	id,
@@ -46,8 +138,21 @@ const RepositoryItem = ({
 								? VIEWER_SUBSCRIPTIONS.UNSUBSCRIBED
 								: VIEWER_SUBSCRIPTIONS.SUBSCRIBED
 						}}
+						optimisticResponse={{
+							updateSubscription: {
+								__typename: 'Mutation',
+								subscribable: {
+									__typename: 'Repository',
+									id,
+									viewerSubscription: isWatching(viewerSubscription)
+										? VIEWER_SUBSCRIPTIONS.UNSUBSCRIBED
+										: VIEWER_SUBSCRIPTIONS.SUBSCRIBED
+								}
+							}
+						}}
+						update={updateWatching}
 					>
-						{(updateSubscription, { data, loading, error }) => (
+						{(updateSubscription /*{ data, loading, error }*/) => (
 							<Button
 								className="RepositoryItem-title-action"
 								onClick={updateSubscription}
@@ -58,8 +163,22 @@ const RepositoryItem = ({
 						)}
 					</Mutation>
 					{!viewerHasStarred ? (
-						<Mutation mutation={STAR_REPOSITORY} variables={{ id }}>
-							{(addStar, { data, loading, error }) => (
+						<Mutation
+							mutation={STAR_REPOSITORY}
+							variables={{ id }}
+							optimisticResponse={{
+								addStar: {
+									__typename: 'Mutation',
+									starrable: {
+										__typename: 'Repository',
+										id,
+										viewerHasStarred
+									}
+								}
+							}}
+							update={updateAddStar}
+						>
+							{(addStar /*{ data, loading, error }*/) => (
 								<Button
 									className={'RepositoryItem-title-action'}
 									onClick={addStar}
@@ -69,8 +188,22 @@ const RepositoryItem = ({
 							)}
 						</Mutation>
 					) : (
-						<Mutation mutation={UNSTAR_REPOSITORY} variables={{ id }}>
-							{(removeStar, { data, loading, error }) => (
+						<Mutation
+							mutation={UNSTAR_REPOSITORY}
+							variables={{ id }}
+							optimisticResponse={{
+								removeStar: {
+									__typename: 'Mutation',
+									starrable: {
+										__typename: 'Repository',
+										id,
+										viewerHasStarred
+									}
+								}
+							}}
+							update={updateRemoveStar}
+						>
+							{(removeStar /*{ data, loading, error }*/) => (
 								<Button
 									className={'RepositoryItem-title-action'}
 									onClick={removeStar}
