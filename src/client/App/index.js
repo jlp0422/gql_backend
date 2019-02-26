@@ -41,7 +41,7 @@ class App extends React.Component {
 							exact
 							path={routes.PROFILE}
 							component={() => (
-								<div className="App-conetn_small-header">
+								<div className="App-content_small-header">
 									{' '}
 									<Profile />{' '}
 								</div>
