@@ -40,7 +40,6 @@ const httpLink = new HttpLink({
 })
 
 const cache = new InMemoryCache()
-
 const link = ApolloLink.from([errorLink, httpLink])
 
 const client = new ApolloClient({
